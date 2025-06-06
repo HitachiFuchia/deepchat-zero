@@ -9,18 +9,21 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const getSession = async () => {
-      const result = await supabase.auth.getSession();
-      const session = result?.data?.session || null;
-      setSession(session);
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Fehler bei getSession:', error.message);
+      }
+      setSession(data?.session ?? null);
     };
+
     getSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
     });
 
     return () => {
-      listener?.subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
