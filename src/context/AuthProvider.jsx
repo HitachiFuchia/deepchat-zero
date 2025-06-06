@@ -9,7 +9,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const result = await supabase.auth.getSession();
+      const session = result?.data?.session || null;
       setSession(session);
     };
     getSession();
@@ -26,12 +27,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (session?.user) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
-        setProfile(data);
+
+        if (error) {
+          console.error('Fehler beim Laden des Profils:', error.message);
+        } else {
+          setProfile(data);
+        }
       }
     };
     fetchProfile();
